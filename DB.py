@@ -1,21 +1,37 @@
 import sqlite3
 
-def connection(db_file):
-    conn = None
-    try:
-        conn = sqlite3.connect(db_file)
-        print("БД подключена")
-        return conn
-    except:
-        print("Ошибка подключения к БД")
-db_file = r"C:\Users\User\Downloads\simplefolks.sqlite"
-conn = connection(db_file)
-cursor = conn.cursor()
-execute = cursor.execute(
-    """
-    SELECT *
-    FROM homes
-    """
-)
-output = execute.fetchall()
-print(*output, sep="\n")
+class Database():
+    def __init__(self):
+        self.conn = None
+        try:
+            self.conn = sqlite3.connect(r"C:\Users\User\Documents\db_folder\users.db")
+            print("БД подключена")
+        except:
+            print("Ошибка подключения к БД")
+
+    def read(self, query):
+        try:
+            self.cursor = self.conn.cursor()
+            execute = self.cursor.execute(query).fetchall()
+            return execute
+        except:
+            return False
+
+    def write(self, query):
+        try:
+            self.cursor = self.conn.cursor()
+            execute = self.cursor.execute(query)
+            self.conn.commit()
+            return True
+        except:
+            return False
+
+db = Database()
+print(db.write("""
+INSERT INTO users (login, password)
+VALUES (
+"""))
+print(db.write("""
+SELECT *
+FROM users
+"""))
