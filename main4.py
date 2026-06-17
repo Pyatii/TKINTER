@@ -4,27 +4,25 @@ from tkinter import messagebox
 import json
 import os
 from hashlib import sha256
+from test import Database
 def hash_password(password):
     return sha256(password.encode()).hexdigest()
 
-if not  os.path.exists("users.json"):
-    with open("users.json", "w", encoding="utf-8") as f:
-        log = hash_password("admin")
-        pas = hash_password("admin123")
-        users = {
-            log: pas
-        }
-        json.dump(users, f, indent=4)
-
 def new_window_registration():
     def registration():
-        new_login=entry_login_r.get()
-        new_password = entry_password_r.get()
-        with open("users.json", "r", encoding="utf-8") as f:
-            users = json.load(f)
-        with open("users.json", "w", encoding="utf-8") as f:
-            users[hash_password(new_login)] = hash_password(new_password)
-            json.dump(users, f, indent=4)
+        username = entry_login_r.get()
+        password = hash_password(entry_password_r.get())
+
+
+        if db.write(f"""
+        INSERT INTO users(login, password)
+        VALUES (?, ?)""", [username, password]):
+            messagebox.showinfo("Успешно", f"Вы зарегистрированы")
+        else:
+            messagebox.showerror("Неуспешно", f"Вы не зарегистрированы")
+
+
+
     root_w= tk.Toplevel(root)
     root_w.title("Регистрация нового пользователя")
     root_w.geometry("300x400")
@@ -49,33 +47,46 @@ def new_window_registration():
     reg_button = tk.Button(root_w, text="Регистрация", command = registration, width=15)
     reg_button.pack(pady=15)
 
-
-
-
 def login():
-    username = hash_password(entry_login.get())
+    username = entry_login.get()
     password = hash_password(entry_password.get())
     print(username, password)
     if not username or not password:
         messagebox.showerror("Ошибка", "Введите логин и пароль!")
-
-    with open("users.json", "r", encoding="utf-8") as f:
-        users = json.load(f)
-
-    if username in users and users[username] == password:
+    if password == db.read(f"""
+    SELECT password
+    FROM users
+    WHERE login = ?
+    """, [username])[0][0]:
         messagebox.showinfo("Успешно", f"Добро пожаловать {entry_login.get()}")
-        root.destroy()
-        subprocess.run(['python',r"C:\Users\User\PycharmProjects\pythonProject3\calculator.py"])
 
     else:
         messagebox.showinfo("Отказано в доступе", "Введите верный логин и пароль")
 
+def change():
+    username = entry_login.get()
+    password = hash_password(entry_password.get())
+    if not username or not password:
+        messagebox.showerror("Ошибка", "Введите логин и пароль!")
+    print(f"""
+        UPDATE users
+        SET password = ?
+        WHERE login = ? """)
+    if db.write(f"""
+    UPDATE users
+    SET password = ?
+    WHERE login = ? """, [password, username]):
+        messagebox.showinfo("Успешно", f"Пароль изменен")
+
+    else:
+        messagebox.showinfo("Отказано в доступе", "Неизвестная ошибка")
 
 
 
+db = Database()
 root = tk.Tk()
 root.title("Авторизация")
-root.geometry("300x400")
+root.geometry("300x600")
 root.resizable(False, False)
 
 Label1 = tk.Label(root, text = "Вход в систему")
@@ -96,4 +107,8 @@ LogInButton.pack(pady=15)
 
 RegButton = tk.Button(root, text = "Зарегистрироваться", command = new_window_registration, width = 20, height = 5)
 RegButton.pack(pady=15)
+
+ChangeButton = tk.Button(root, text = "Изменить", command = change, width = 20, height = 5)
+ChangeButton.pack(pady=15)
+
 root.mainloop()
