@@ -1,5 +1,5 @@
 import sqlite3
-
+import os
 class Database():
     def __init__(self):
         self.conn = None
@@ -9,22 +9,21 @@ class Database():
         except:
             print("Ошибка подключения к БД")
 
-    def read(self, query):
+    def read(self, query, massive):
         try:
             self.cursor = self.conn.cursor()
-            execute = self.cursor.execute(query).fetchall()
+            execute = self.cursor.execute(query, tuple(massive)).fetchall()
             return execute
         except Exception as e:
             print(e)
             return False
 
-    def write(self, query):
+    def write(self, query, massive):
         try:
             self.cursor = self.conn.cursor()
-            execute = self.cursor.execute(query)
+            execute = self.cursor.execute(query, tuple(massive))
             self.conn.commit()
             return True
         except Exception as e:
             print(e)
             return False
-
