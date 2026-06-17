@@ -14,7 +14,8 @@ class Database():
             self.cursor = self.conn.cursor()
             execute = self.cursor.execute(query).fetchall()
             return execute
-        except:
+        except Exception as e:
+            print(e)
             return False
 
     def write(self, query):
@@ -23,15 +24,7 @@ class Database():
             execute = self.cursor.execute(query)
             self.conn.commit()
             return True
-        except:
+        except Exception as e:
+            print(e)
             return False
 
-db = Database()
-print(db.write("""
-INSERT INTO users (login, password)
-VALUES (
-"""))
-print(db.write("""
-SELECT *
-FROM users
-"""))
